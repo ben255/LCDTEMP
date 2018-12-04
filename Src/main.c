@@ -58,6 +58,8 @@ uint16_t tempData;
 uint16_t DHT11_timeout = 10000;
 int16_t DHT11_buff_raw[41];
 uint8_t DHT11_data[5];
+
+int8_t set_temp = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -149,7 +151,7 @@ int16_t Read_DHT11(){
 	return DHT11_data[2];
 }
 
-void printNumber(uint32_t number){
+void printNumber(int16_t number){
 
 	int n = log10(number) + 1;
 	int i;
@@ -163,15 +165,30 @@ void printNumber(uint32_t number){
 
 void printData(){
 
+	int16_t resValue = Read_Analog_Temp()/100;
+
+	if(resValue < set_temp)
+		HAL_GPIO_WritePin(GPIOA, DHT_LED_Pin, 1);
+	else
+		HAL_GPIO_WritePin(GPIOA, DHT_LED_Pin, 0);
 
 	TextLCD_Position(&lcd, 0, 0);
 	TextLCD_Puts(&lcd, "Res..Temp:");
-	printNumber(Read_Analog_Temp());
+	printNumber(resValue);
+
+
 
 	int16_t * dht = Read_DHT11();
+	int16_t dhtValue = dht+1;
+
+	if(dhtValue < set_temp)
+		HAL_GPIO_WritePin(GPIOA, RES_LED_Pin, 1);
+	else
+		HAL_GPIO_WritePin(GPIOA, RES_LED_Pin, 0);
+
 	TextLCD_Position(&lcd, 0, 1);
 	TextLCD_Puts(&lcd, "DHT..Temp:");
-	printNumber(dht+1);
+	printNumber(dhtValue);
 
 }
 
@@ -222,9 +239,12 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-	  //sprintf(pData, "STEP: %d\n\r", Read_Analog_Temp());
-	  //HAL_UART_Transmit(&huart2,pData, strlen(pData), 100);
+	  if(!HAL_GPIO_ReadPin(GPIOA, BTN_DOWN_Pin))
+		  set_temp--;
+	  if(!HAL_GPIO_ReadPin(GPIOA, BTN_UP_Pin))
+		  set_temp++;
+	  sprintf(pData, "set_temp: %d\n\r", set_temp);
+	  HAL_UART_Transmit(&huart2,pData, strlen(pData), 100);
 
 
 	  printData();
@@ -374,7 +394,7 @@ static void MX_GPIO_Init(void)
                           |LCD_D4_Pin|LCD_D5_Pin|LCD_D6_Pin|LCD_D7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|DHT_LED_Pin|RES_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LCD_RS_Pin|LCD_RW_Pin|LCD_E_Pin|DHT11_Pin, GPIO_PIN_RESET);
@@ -394,12 +414,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : LD2_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin;
+  /*Configure GPIO pins : LD2_Pin DHT_LED_Pin RES_LED_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin|DHT_LED_Pin|RES_LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LCD_RS_Pin LCD_RW_Pin LCD_E_Pin */
   GPIO_InitStruct.Pin = LCD_RS_Pin|LCD_RW_Pin|LCD_E_Pin;
@@ -407,6 +427,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : BTN_UP_Pin BTN_DOWN_Pin */
+  GPIO_InitStruct.Pin = BTN_UP_Pin|BTN_DOWN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : DHT11_Pin */
   GPIO_InitStruct.Pin = DHT11_Pin;

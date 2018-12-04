@@ -67,6 +67,10 @@
 #define USART_RX_GPIO_Port GPIOA
 #define LD2_Pin GPIO_PIN_5
 #define LD2_GPIO_Port GPIOA
+#define DHT_LED_Pin GPIO_PIN_6
+#define DHT_LED_GPIO_Port GPIOA
+#define RES_LED_Pin GPIO_PIN_7
+#define RES_LED_GPIO_Port GPIOA
 #define LCD_D4_Pin GPIO_PIN_4
 #define LCD_D4_GPIO_Port GPIOC
 #define LCD_D5_Pin GPIO_PIN_5
@@ -81,6 +85,10 @@
 #define LCD_D6_GPIO_Port GPIOC
 #define LCD_D7_Pin GPIO_PIN_7
 #define LCD_D7_GPIO_Port GPIOC
+#define BTN_UP_Pin GPIO_PIN_8
+#define BTN_UP_GPIO_Port GPIOA
+#define BTN_DOWN_Pin GPIO_PIN_9
+#define BTN_DOWN_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
